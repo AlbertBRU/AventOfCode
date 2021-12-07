@@ -503,7 +503,7 @@ $lineCoordinates = [
   [922,425,355,425],
   [457,597,61,597]
   ];
-$map = array_fill(0, 1000000, '.');
+$map = array_fill(0, 1000000, 0);
 
 // X = numéro de colonne (vertical)
 // Y = numéro de ligne (horizontal)
@@ -518,7 +518,7 @@ foreach ($lineCoordinates as $line) {
   $yOne = $line[1];
   $xTwo = $line[2];
   $yTwo = $line[3];
-
+  $topToBot = false;
   // On récup les coordonnées de départ
   // On remarque que si on dresse un tableau d'une longueur de 100, la case qui commence en 2,9 est en fait à l'index 92. il faut donc inverser les chiffres pour avoir facilement les coordonnées exactes! provoque un bug si on mix centaines et dizaines, donc on reste sur le bon vieux calcul
   // $firstCoordinate = $yOne.$xOne;
@@ -526,54 +526,70 @@ foreach ($lineCoordinates as $line) {
   // On récup les coordonnées d'arrivé
   // $secondCoordinate = $yTwo.$xTwo;
   $secondCoordinate = ($xTwo + ($yTwo*$linelength));
-  var_dump($firstCoordinate . '  ' . $secondCoordinate);
   // Enfin, fixons plutot le départ sur la partie la moins éloignée de la chaine pour pas s'embrouiller.
   if ($firstCoordinate < $secondCoordinate || $firstCoordinate == $secondCoordinate ) {
+    $newXOne = $xOne;
+    $newXTwo = $xTwo;
+    $newYOne = $yOne;
+    $newYTwo = $yTwo;
+
     $startCoordinate = intval($firstCoordinate);
     $stopCoordinate = intval($secondCoordinate);
   }else {
+    $newXOne = $xTwo;
+    $newXTwo = $xOne;
+    $newYOne = $yTwo;
+    $newYTwo = $yOne;
+
     $startCoordinate = intval($secondCoordinate);
     $stopCoordinate = intval($firstCoordinate);
   }
-
+  
+  var_dump($startCoordinate . '  ' . $stopCoordinate);
 
   if ($xOne == $xTwo) {
     // le cable est vertical
-    for ($i= $startCoordinate; $i < $stopCoordinate+$linelength; $i+=$linelength) { 
-        if ($map[$i] == '.') {
-          $map[$i] = '1';
-        }else {
-          $map[$i] = '2';
-        };
+    for ($i= $startCoordinate; $i < $stopCoordinate+1; $i+=$linelength) { 
+      $map[$i] += 1;
+
       };
   } 
   elseif ($yOne == $yTwo) {
     // le cable est horizontal
     for ($i= $startCoordinate; $i < $stopCoordinate+1; $i++) { 
-      if ($map[$i] == '.') {
-        $map[$i] = '1';
-      }else {
-        $map[$i] = '2';
-      };
+      $map[$i] += 1;
+
     };
 
+  }
+  // On va chercher tenter de déterminer tous les composants possibles d'une diagonale.
+  // Si x1 = y1 et x2 = y2, alors on a une diagonale.
+  // Si x1 = y2 et x2 = y1, pareil.
+  // 2,0 -> 6,4 est aussi une diagonale, au même titre que 6,0 -> 2,4. Il va falloir trouver un calcul permettant de determiner ces diagonales.
+  // Conclusion : pour une diagonale qui irait toujours de haut vers le bas : 
+  // Si x2-x1 = y2-y1, alors la diagonale va de gauche à droite
+  // Si y2-y1 = x1-x2, alors la diagonale va de droite à gauche.
+  elseif (($newYTwo - $newYOne) == ($newXOne - $newXTwo)) {
+    for ($i= $startCoordinate; $i < $stopCoordinate+1; $i+=($linelength-1)) { 
+      $map[$i] += 1;
+
+    };
+  }
+  
+  elseif ( ($newXTwo - $newXOne) == ($newYTwo - $newYOne)) {
+    // ... alors la diagonale va de gauche à droite
+    for ($i= $startCoordinate; $i < $stopCoordinate+1; $i+=($linelength+1)) { 
+      $map[$i] += 1;
+    };
   }
 };
 
 
 var_dump($map);
 
-function array_count_values_of($value, $array) {
-  $counts = array_count_values($array);
-  return $counts[$value];
-};
-$value = 2;
-$score = array_count_values_of($value, $map);
-var_dump($score);
-
 $finalScore = 0;
 foreach ($map as $value) {
-  if ($value == 2) {
+  if ($value >= 2) {
     $finalScore ++;
   }
 };
