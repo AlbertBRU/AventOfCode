@@ -1,6 +1,6 @@
 <?php
 // On met en forme le tableau
-$input = [
+$massInput = [
 'ceg gedcfb ec eabfdg gcdabe baged cabgf gbaec fecagdb eacd | efcgbad adfecbg gec abgce',
 'afebcg deac da fgeadc aegbdf fgcda gad dbgfeac cgaef fcdgb | fgace dfgcb cafdg afdcg',
 'gfecb gfabc gdcfeb dcbe efcagd egbafd dfebg ce cef bdacgfe | ce efbdg ec cef',
@@ -203,32 +203,568 @@ $input = [
 'aed aecfbdg geafc cdeaf efdcb bcgedf bdaf da gbdcae beacfd | ecafd ade cdfae bedcf'
 ];
 
-$newInput = [];
+$output = [];
 // On vient récupérer uniquement les valeurs  qui nous interesse, c'est à dire, celles qui sont après le séparateur et on vient les ranger dans un nouveau tableau.
-foreach ($input as $singleInput) {
+foreach ($massInput as $singleInput) {
   // Il y a 59 caractères avant le séparateur, puis il y a le separateur, et un espace. Soit 61 caractères a enlever.
-  array_push($newInput, substr($singleInput, 61));
+  array_push($output, substr($singleInput, 61));
 };
 
-// var_dump($newInput);
+// var_dump($output);
 
-$explodedInput = [];
+$explodedOutput = [];
 // On va exploser la chaine de caractères afin de récupérer chaque segment et les ranger dans un encore nouveau tableau : 
-foreach ($newInput as $singleInput) {
-  array_push($explodedInput, explode(" ", $singleInput));
+foreach ($output as $singleOutput) {
+  array_push($explodedOutput, explode(" ", $singleOutput));
 }
 
-// var_dump($explodedInput);
+// var_dump($explodedOutput);
 
 $resultCount = 0;
 // Oui, il parait que j'aime les foreach...
-foreach ($explodedInput as $singleInput) {
-  // j'aime vraiment beaucoup les foreach
-  foreach ($singleInput as $key => $value) {
+foreach ($explodedOutput as $singleOutput) {
+  // ... vraiment beaucoup
+  foreach ($singleOutput as $key => $value) {
     if (strlen($value) == 2 || strlen($value) == 3 || strlen($value) == 4 ||strlen($value) == 7 ) {
       $resultCount += 1;
     }
   }
 }
 
-var_dump($resultCount);
+// var_dump($resultCount);
+
+// EXO 2 : 
+// On va devoir décrypter nos input : 
+// Pour ca on va devoir "mapper" notre solution, et ce pour chaque ligne, car chaque ligne à un pattern different. 
+// On va faire chauffer PHP
+
+$inputs = [];
+foreach ($massInput as $input) {
+  array_push($inputs, substr($input, 0, 58));
+}
+// var_dump($inputs);
+
+$explodedInput = [];
+foreach ($inputs as $singleInput) {
+  array_push($explodedInput, explode(" ", $singleInput));
+}
+
+// var_dump($explodedInput);
+
+// On a maintenant un tableau avec chaque input bien séparé. Il va maintenant falloir mapper pour trouver des correspondances de digit.
+// On va considérer $aaaa comme la barre horizontale superieur, $dddd comme la barre du milieu etc... 
+// Pour l'instant, il est facile de trouver les input "uniques". il faudra maintenant a partir des input uniques, déterminer ceux qui ne le sont pas.
+
+// Si il n'a que 2 caractères (le 1), alors en déduit que chaque caractère correspond soit à $cc, soit à $ff..
+
+// Si il a 3 caractères(le 7), on en déduit que 2 de ces caractères sont deja présents dans $cc et $ff, donc le 3eme devrait être placé dans //!$aaaa.
+
+// Si il a 4 caractères(le 4), on en déduit que 2 de ces caractères sont deja présents dans $cc et $ff, donc on place les 2 derniers caractères dans $bb et $dddd.
+
+// On a maintenant un emplacement pour la barre horizontale haute, dont disposent
+
+// Si il a 5 caractères(le 2), on compare ses lettres avec celles présentes dans le tableau $cc. Si 2 lettres matchent avec $cc, alors c'est pas un 2. Si une seule lettre correspond au tableau $cc, la lettre qui match sera la référence //!$cc. 
+// Si on a $cc, la lettre qui n'es pas dans $cc mais quand même dans $ff sera la référence //!$ff.
+// Si il a 5 caractères(le 3), on saura qu'un de ces caractères et le $aaaa, que 2 autres caractères sont présents dans $cc et $ff (la base du 1), il nous restera 2 caractères à placer dans $dd et $gg.
+
+// On parcours notre tableau de tableaux
+$numberOfLines = 0;
+$numberOfZero = 0;
+$numberOfOne = 0;
+$numberOfTwo = 0;
+$numberOfThree = 0;
+$numberOfFour = 0;
+$numberOfFive = 0;
+$numberOfSix = 0;
+$numberOfSeven = 0;
+$numberOfEight = 0;
+$numberOfNine = 0;
+
+$outputResult = [];
+$outputStringResult = [];
+
+if (!function_exists('str_contains')) {
+  function str_contains($haystack, $needle) {
+      return $needle !== '' && mb_strpos($haystack, $needle) !== false;
+  }
+}
+foreach ($explodedInput as $indexOfInput => $singleInputGroup) {
+  $a = [];
+  $b = [];
+  $c = [];
+  $d = [];
+  $e = [];
+  $f = [];
+  $g = [];
+
+  // Et on parcours chaque tableau le comprenant
+  foreach ($singleInputGroup as $value) {
+    // Si la chaine a 2 entrées, alors c'est un 1, donc ces deux entrées correspondent à C ou F
+    if (strlen($value) == 2) {
+      $c = [$value[0], $value[1]];
+      $f = [$value[0], $value[1]];
+      $one = $value;
+      $numberOfOne +=1;
+
+    }
+  }
+  // On reprends une nouvelle boucle maintenant qu'on a nos données pour le 1
+  foreach ($singleInputGroup as $value) {
+    // Si la chaine a 3 entrées, alors c'est un 7, donc l'entrée ne correspondant ni à c ni à f, finira dans $a.
+    if (strlen($value) == 3) {
+      if (!in_array($value[0], $c)) {
+          $a = $value[0];
+      } elseif (!in_array($value[1], $c)) {
+          $a = $value[1];
+      } elseif (!in_array($value[2], $c)) {
+          $a = $value[2];
+      }
+      $seven = $value;
+      $numberOfSeven +=1;
+
+    }
+  }
+  // A ce stade, on a déterminé la value de //!$a
+  // var_dump($a);
+  // On reboucle pour mettre en data le 4
+  foreach ($singleInputGroup as $value) {
+    if (strlen($value) == 4) {
+      // var_dump($value[3]);
+      // var_dump($c);
+
+      if (!in_array($value[0], $c)) {
+        array_push($b, $value[0]);
+        array_push($d, $value[0]);
+
+      }
+      if (!in_array($value[1], $c)) {
+        array_push($b, $value[1]);
+        array_push($d, $value[1]);
+
+      }
+      if (!in_array($value[2], $c)) {
+        array_push($b, $value[2]);
+        array_push($d, $value[2]);
+      }
+      if (!in_array($value[3], $c)) {
+        array_push($b, $value[3]);
+        array_push($d, $value[3]);
+      }
+      $four = $value;
+      $numberOfFour +=1;
+
+    }
+  }
+  // A ce stade, on a notre $a, et 2 possibilités pour $b, $c, $d, et $f
+  // On va chercher a analyser les 3. Sur les 3 nombres ayant 5 valeurs, seul le 3 possède les 2 valeurs du 1.
+  foreach ($singleInputGroup as $value) {
+    if (strlen($value) == 5) {
+      $getThree = 0;
+      for ($i=0; $i < 5; $i++) { 
+        if ($value[$i] == $one[0] || $value[$i] == $one[1]) {
+          $getThree +=1;
+        }
+      }
+      if ($getThree == 2) {
+        // var_dump($value." est un trois");
+        $three = $value;
+        $numberOfThree +=1;
+
+      }
+      // var_dump($value);
+      // var_dump($one);
+    }
+  }
+  // A partir de la, on peut trouver les 9. Ce sont des suites de 6 lettres, dont 5 occurences font partie du 3.
+  foreach ($singleInputGroup as $value) {
+    // var_dump($three);
+    if (strlen($value) == 6) {
+      $getNine = 0;
+      for ($i=0; $i < 6; $i++) { 
+        if (str_contains($three, $value[$i])) {
+          $getNine +=1;
+        }else {
+          // le dernier chiffre est potentiellement le mapping $b, mais pas si on est pas sur un 9. alors on le transformera en $b qu'une fois qu'on est sur que c'est un 9 
+          $potentialB = $value[$i];
+        }
+      }
+      
+      if ($getNine == 5) {
+       $nine = $value;
+       $numberOfNine +=1;
+
+       $b = $potentialB;
+      }
+    }
+  }
+  foreach ($singleInputGroup as $value) {
+      if (strlen($value) == 7) {
+        $eight = $value;
+        $numberOfEight +=1;
+
+      }
+  }
+  // var_dump($singleInputGroup);
+  // var_dump('le 1 est '. $one .', le trois est '.$three.'le 4 est '. $four .', le 7 est '. $seven .', le 8 est '. $eight .', le 9 est '. $nine);
+  // Jusque la, je récupère donc le 1, 3, 4, 7, 8 et 9.
+  // Il me manque encore le 2, 5, 6 et 0.
+  // Si on trouve $d, on trouvera 0.
+  // var_dump($b);
+  // var_dump($d);
+  if ($d[0] == $b) {
+    $d = $d[1];
+  }else {
+    $d = $d[0];
+  }
+ 
+  
+  // On cherche le 0
+  foreach ($singleInputGroup as $value) {
+    // var_dump($value);
+    // var_dump($d);
+
+    if (strlen($value) == 6 && !str_contains($value, $d)) {
+      $zero = $value;
+      $numberOfZero += 1;
+    }
+  }
+  // var_dump('le 0 est '. $zero. ', le 1 est '. $one .', le trois est '.$three.'le 4 est '. $four .', le 7 est '. $seven .', le 8 est '. $eight .', le 9 est '. $nine);
+
+  // On cherche le 2. Il faut qu'il ait 5 chiffres, que sa valeur soit différente des numéros déjà catalogués en 5 chiffre, et que sa chaine ne contienne pas $b.
+  foreach ($singleInputGroup as $value) {
+    
+    if (strlen($value) == 5) {
+      if (!str_contains($value, $b) && $value != $three) {
+        $two = $value;
+        $numberOfTwo +=1;
+
+      }
+    }
+  }
+
+  // On cherche le 5
+  foreach ($singleInputGroup as $value) {
+    if (strlen($value) == 5 && $value != $two && $value != $three) {
+      $five = $value;
+      $numberOfFive +=1;
+
+    } 
+  }
+
+  // On cherche le 6
+  foreach ($singleInputGroup as $value) {
+    if (strlen($value) == 6 && $value != $zero && $value != $nine) {
+      $six = $value;
+      $numberOfSix +=1;
+
+     
+    } 
+  }
+  // On a toutes nos correspondances de lettres, mais pas dans le bon ordre.
+  $firstOutput = $explodedOutput[$indexOfInput][0];
+  $secondOutput = $explodedOutput[$indexOfInput][1];
+  $thirdOutput = $explodedOutput[$indexOfInput][2];
+  $fourthOutput = $explodedOutput[$indexOfInput][3];
+  // On est actuellement dans la boucle qui éclate les 10 inputs en 10 entrées de tableau. On veut donc pour chaque entrée, si il y a correspondance de nombre de lettre, comparer les lettres à l'interieur.
+  //  var_dump('le 0:'. $zero. ', le 1:'. $one .', le deux:'.$two.', le trois:'.$three.', le 4:'. $four .', le 5:'.$five.', le 6:'.$six.', le 7:'. $seven .', le 8:'. $eight .', le 9:'. $nine);
+  // for ($i=0; $i < strlen($firstOutput); $i++) { 
+  //   // if (str_contains()) {
+  //   //   # code...
+  //   // }
+  // }
+
+  foreach ($singleInputGroup as $key => $singleInput) {
+    if (strlen($firstOutput) == strlen($singleInput)) {
+      $count = 0;
+        // Si le nombre de lettre corresponds...
+        // Alors on va faire en sorte de comparer toutes ces lettres
+        for ($i=0; $i < strlen($firstOutput); $i++) {
+          // var_dump($firstOutput[$i]); 
+          if (str_contains($singleInput, $firstOutput[$i])) {
+            $count +=1;
+          }
+          
+        }
+        // var_dump($count);
+      if ($count == strlen($singleInput)) {
+        // var_dump($firstOutput);
+        // var_dump($singleInput);
+        // var_dump('la valeur match avec celle du tableau');
+        if ($singleInput == $one) {
+          // var_dump('c\'est un 1');
+          $outputResult[$indexOfInput] = ['1'];
+        }
+        elseif ($singleInput == $two) {
+          // var_dump('c\'est un 2');
+          $outputResult[$indexOfInput] = ['2'];
+
+        }
+        elseif ($singleInput == $three) {
+          // var_dump('c\'est un 3');
+          $outputResult[$indexOfInput] = ['3'];
+
+        }
+        elseif ($singleInput == $four) {
+          // var_dump('c\'est un 4');
+          $outputResult[$indexOfInput] = ['4'];
+
+        }
+        elseif ($singleInput == $five) {
+          // var_dump('c\'est un 5');
+          $outputResult[$indexOfInput] = ['5'];
+        }
+        elseif ($singleInput == $six) {
+          // var_dump('c\'est un 6');
+          $outputResult[$indexOfInput] = ['6'];
+
+        }
+        elseif ($singleInput == $seven) {
+          // var_dump('c\'est un 7');
+          $outputResult[$indexOfInput] = ['7'];
+
+        }
+        elseif ($singleInput == $eight) {
+          // var_dump('c\'est un 8');
+          $outputResult[$indexOfInput] = ['8'];
+        }
+        elseif ($singleInput == $nine) {
+          $outputResult[$indexOfInput] = ['9'];
+          // var_dump('c\'est un 9');
+        }
+        elseif ($singleInput == $zero) {
+          $outputResult[$indexOfInput] = ['0'];
+          // var_dump('c\'est un 0');
+        }
+      }
+      
+    }
+    
+
+  }
+
+  foreach ($singleInputGroup as $key => $singleInput) {
+    if (strlen($secondOutput) == strlen($singleInput)) {
+      $count = 0;
+        // Si le nombre de lettre corresponds...
+        // Alors on va faire en sorte de comparer toutes ces lettres
+        for ($i=0; $i < strlen($secondOutput); $i++) {
+          // var_dump($secondOutput[$i]); 
+          if (str_contains($singleInput, $secondOutput[$i])) {
+            $count +=1;
+          }
+        }
+        // var_dump($count);
+      if ($count == strlen($singleInput)) {
+        // var_dump($secondOutput);
+        // var_dump($singleInput);
+        // var_dump('la valeur match avec celle du tableau');
+        if ($singleInput == $one) {
+          // var_dump('c\'est un 1');
+          array_push($outputResult[$indexOfInput], '1');
+          //  = [$outputResult[$indexOfInput][0],'1'];
+        }
+        elseif ($singleInput == $two) {
+          // var_dump('c\'est un 2');
+          array_push($outputResult[$indexOfInput], '2');
+
+        }
+        elseif ($singleInput == $three) {
+          // var_dump('c\'est un 3');
+          array_push($outputResult[$indexOfInput], '3');
+
+        }
+        elseif ($singleInput == $four) {
+          // var_dump('c\'est un 4');
+          array_push($outputResult[$indexOfInput], '4');
+
+        }
+        elseif ($singleInput == $five) {
+          // var_dump('c\'est un 5');
+          array_push($outputResult[$indexOfInput], '5');
+        }
+        elseif ($singleInput == $six) {
+          // var_dump('c\'est un 6');
+          array_push($outputResult[$indexOfInput], '6');
+
+        }
+        elseif ($singleInput == $seven) {
+          // var_dump('c\'est un 7');
+          array_push($outputResult[$indexOfInput], '7');
+
+        }
+        elseif ($singleInput == $eight) {
+          // var_dump('c\'est un 8');
+          array_push($outputResult[$indexOfInput], '8');
+        }
+        elseif ($singleInput == $nine) {
+          array_push($outputResult[$indexOfInput], '9');
+          // var_dump('c\'est un 9');
+        }
+        elseif ($singleInput == $zero) {
+          array_push($outputResult[$indexOfInput], '0');
+          // var_dump('c\'est un 0');
+        }
+      }
+      
+    }
+    
+
+  }
+
+  foreach ($singleInputGroup as $key => $singleInput) {
+    if (strlen($thirdOutput) == strlen($singleInput)) {
+      $count = 0;
+        // Si le nombre de lettre corresponds...
+        // Alors on va faire en sorte de comparer toutes ces lettres
+        for ($i=0; $i < strlen($thirdOutput); $i++) {
+          // var_dump($thirdOutput[$i]); 
+          if (str_contains($singleInput, $thirdOutput[$i])) {
+            $count +=1;
+          }
+        }
+        // var_dump($count);
+      if ($count == strlen($singleInput)) {
+        // var_dump($thirdOutput);
+        // var_dump($singleInput);
+        // var_dump('la valeur match avec celle du tableau');
+        if ($singleInput == $one) {
+          // var_dump('c\'est un 1');
+          array_push($outputResult[$indexOfInput], '1');
+          //  = [$outputResult[$indexOfInput][0],'1'];
+        }
+        elseif ($singleInput == $two) {
+          // var_dump('c\'est un 2');
+          array_push($outputResult[$indexOfInput], '2');
+
+        }
+        elseif ($singleInput == $three) {
+          // var_dump('c\'est un 3');
+          array_push($outputResult[$indexOfInput], '3');
+
+        }
+        elseif ($singleInput == $four) {
+          // var_dump('c\'est un 4');
+          array_push($outputResult[$indexOfInput], '4');
+
+        }
+        elseif ($singleInput == $five) {
+          // var_dump('c\'est un 5');
+          array_push($outputResult[$indexOfInput], '5');
+        }
+        elseif ($singleInput == $six) {
+          // var_dump('c\'est un 6');
+          array_push($outputResult[$indexOfInput], '6');
+
+        }
+        elseif ($singleInput == $seven) {
+          // var_dump('c\'est un 7');
+          array_push($outputResult[$indexOfInput], '7');
+
+        }
+        elseif ($singleInput == $eight) {
+          // var_dump('c\'est un 8');
+          array_push($outputResult[$indexOfInput], '8');
+        }
+        elseif ($singleInput == $nine) {
+          array_push($outputResult[$indexOfInput], '9');
+          // var_dump('c\'est un 9');
+        }
+        elseif ($singleInput == $zero) {
+          array_push($outputResult[$indexOfInput], '0');
+          // var_dump('c\'est un 0');
+        }
+      }
+      
+    }
+    
+
+  }
+
+  foreach ($singleInputGroup as $key => $singleInput) {
+    if (strlen($fourthOutput) == strlen($singleInput)) {
+      $count = 0;
+        // Si le nombre de lettre corresponds...
+        // Alors on va faire en sorte de comparer toutes ces lettres
+        for ($i=0; $i < strlen($fourthOutput); $i++) {
+          // var_dump($fourthOutput[$i]); 
+          if (str_contains($singleInput, $fourthOutput[$i])) {
+            $count +=1;
+          }
+        }
+        // var_dump($count);
+      if ($count == strlen($singleInput)) {
+        // var_dump($fourthOutput);
+        // var_dump($singleInput);
+        // var_dump('la valeur match avec celle du tableau');
+        if ($singleInput == $one) {
+          // var_dump('c\'est un 1');
+          array_push($outputResult[$indexOfInput], '1');
+          //  = [$outputResult[$indexOfInput][0],'1'];
+        }
+        elseif ($singleInput == $two) {
+          // var_dump('c\'est un 2');
+          array_push($outputResult[$indexOfInput], '2');
+
+        }
+        elseif ($singleInput == $three) {
+          // var_dump('c\'est un 3');
+          array_push($outputResult[$indexOfInput], '3');
+
+        }
+        elseif ($singleInput == $four) {
+          // var_dump('c\'est un 4');
+          array_push($outputResult[$indexOfInput], '4');
+
+        }
+        elseif ($singleInput == $five) {
+          // var_dump('c\'est un 5');
+          array_push($outputResult[$indexOfInput], '5');
+        }
+        elseif ($singleInput == $six) {
+          // var_dump('c\'est un 6');
+          array_push($outputResult[$indexOfInput], '6');
+
+        }
+        elseif ($singleInput == $seven) {
+          // var_dump('c\'est un 7');
+          array_push($outputResult[$indexOfInput], '7');
+
+        }
+        elseif ($singleInput == $eight) {
+          // var_dump('c\'est un 8');
+          array_push($outputResult[$indexOfInput], '8');
+        }
+        elseif ($singleInput == $nine) {
+          array_push($outputResult[$indexOfInput], '9');
+          // var_dump('c\'est un 9');
+        }
+        elseif ($singleInput == $zero) {
+          array_push($outputResult[$indexOfInput], '0');
+          // var_dump('c\'est un 0');
+        }
+      }
+      
+    }
+  }
+  // Arrivé la, nous avons pour chaque ligne de $outputResult un tableau contenant les 4 valeurs de notre digit
+  // Il va maintenant falloir les imploser pour avoir une chaine de caractère
+  $outputResult[$indexOfInput] = implode("", $outputResult[$indexOfInput]);
+};
+// var_dump($explodedOutput);
+
+// var_dump($numberOfZero);
+// var_dump($numberOfOne);
+// var_dump($numberOfThree);
+// var_dump($numberOfThree);
+// var_dump($numberOfFour);
+// var_dump($numberOfFive);
+// var_dump($numberOfSix);
+// var_dump($numberOfSeven);
+// var_dump($numberOfEight);
+// var_dump($numberOfNine);
+
+// On arrive bien à 200 valeurs sur l'ensemble du tableau, soit une répartition homogène des chiffres. Je pense que c'est décrypté.
+
+// var_dump($outputResult);
+$finalResult = array_sum($outputResult);
+var_dump($finalResult);
