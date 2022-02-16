@@ -252,7 +252,7 @@ foreach ($inputs as $singleInput) {
 // var_dump($explodedInput);
 
 // On a maintenant un tableau avec chaque input bien séparé. Il va maintenant falloir mapper pour trouver des correspondances de digit.
-// On va considérer $aaaa comme la barre horizontale superieur, $dddd comme la barre du milieu etc... 
+// On va considérer $aaaa comme la barre horizontale superieur, $dddd comme la barre du milieu etc... (le schema du début) 
 // Pour l'instant, il est facile de trouver les input "uniques". il faudra maintenant a partir des input uniques, déterminer ceux qui ne le sont pas.
 
 // Si il n'a que 2 caractères (le 1), alors en déduit que chaque caractère correspond soit à $cc, soit à $ff..
